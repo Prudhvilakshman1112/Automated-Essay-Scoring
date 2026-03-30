@@ -24,7 +24,7 @@ This project builds an Automated Essay Scoring (AES) system on the ASAP dataset 
 | **MSE**                      |          3.8802          |     3.8802 *(same model)*    |           **3.9315**           |
 | **R² Score**                 |          0.9502          |     0.9502 *(same model)*    |           **0.9495**           |
 | **Length Bias (Pearson r)**  |       Not Measured       |        ⚠️ **0.5876**         | ⚠️ **0.5911** (Fairness Frontier) |
-| **Fluff Attack**             |        Not Tested        |  ✅ Passed (Δ = −0.1157)     |    ✅ Passed (Δ = −3.5143)     |
+| **Fluff Attack (% Δ)**       |        Not Tested        |  ✅ Passed (% Δ = −1.43%)    |    ✅ Passed (% Δ = −8.90%)    |
 
 > **Research Defence:** The remaining length correlation (r = 0.5911) mirrors the inherent human scorer bias in the ASAP dataset itself — not a model flaw. This is the *Optimal Fairness Frontier*: the model cannot reduce length bias further without sacrificing accuracy.
 
@@ -130,6 +130,7 @@ We append ~200 words of meaningless filler to the highest-scoring test essay and
 | Original predicted score  | 8.0629                                                   |
 | Score after fluff added   | 7.9472                                                   |
 | Score change (Δ)          | **−0.1157**                                              |
+| Score change (% Δ)        | **−1.43%**                                               |
 | **Result**                | **✅ PASSED** — score did not inflate (Δ ≤ 0.5 threshold) |
 
 > The Stage 1/2 model narrowly passes the fluff test (Δ = −0.1157), but this is because the SBERT encoder partially neutralises filler through sentence-level averaging. The model is not *designed* to resist verbosity — it gets lucky on this test.
@@ -229,9 +230,10 @@ A filler-heavy essay repeats the same low-information phrases → `unique_words`
 | Original predicted score         | 39.4862                                            |
 | Score after fluff added          | 35.9719                                            |
 | Score change (Δ)                 | **−3.5143**                                        |
+| Score change (% Δ)               | **−8.90%**                                         |
 | **Result**                       | **✅ PASSED — DOL penalised filler (density collapsed)** |
 
-The DOL model penalises fluff **30× harder** than the Stage 2 model (Δ = −3.51 vs −0.12). The density collapsed from 0.2692 → 0.1806 when filler was added, activating the ReLU threshold and driving the score down. This is the mechanistic proof that the DOL filter works as intended.
+The DOL model penalises fluff **~6.2× harder** than the Stage 2 model on a scale-normalised basis (% Δ = −8.90% vs −1.43%). The density collapsed from 0.2692 → 0.1806 when filler was added, activating the ReLU threshold and driving the score down. This is the mechanistic proof that the DOL filter works as intended.
 
 #### Training Loss Curve
 
@@ -339,19 +341,19 @@ Loss = 0.8 × MSELoss(predictions, targets)
 **Title:** Density-Over-Length (DOL): A 16-Dimensional Linear-ReLU Projection for Bias-Aware Automated Essay Scoring
 
 **Abstract:**
-Automated Essay Scoring (AES) systems trained on human-graded corpora inherit the biases of their annotators. We demonstrate, using the ASAP dataset, that a state-of-the-art SBERT + LSTM Attention model (Nie, 2025) achieves R² = 0.9502 but exhibits a statistically significant Pearson correlation of r = 0.5876 (p = 7.20×10⁻²⁴¹) between predicted scores and essay word counts — a clear signal of length bias (Doewes, 2026). To address this, we propose the Density-Over-Length (DOL) filter: a lightweight scalar feature defined as the ratio of unique content words to total words, projected into 16 dimensions via a Linear-ReLU layer and concatenated into the model's score-prediction vector. Training from scratch (100 epochs, Adam, LR = 0.01, combined MSE + cosine loss), the DOL-augmented model achieves R² = 0.9495, QWK = 0.9457 — preserving elite accuracy while demonstrating 30× stronger penalisation of adversarial verbosity (Fluff Attack Δ: −0.12 → −3.51). The remaining length correlation (r = 0.5911) matches the inherent scorer bias of the ASAP corpus, establishing the *Optimal Fairness Frontier* beyond which further debiasing would degrade predictive validity. Our contribution is the only AES architecture that mathematically identifies, projects, and penalises non-substantive essay length without sacrificing human-level scoring agreement.
+Automated Essay Scoring (AES) systems trained on human-graded corpora inherit the biases of their annotators. We demonstrate, using the ASAP dataset, that a state-of-the-art SBERT + LSTM Attention model (Nie, 2025) achieves R² = 0.9502 but exhibits a statistically significant Pearson correlation of r = 0.5876 (p = 7.20×10⁻²⁴¹) between predicted scores and essay word counts — a clear signal of length bias (Doewes, 2026). To address this, we propose the Density-Over-Length (DOL) filter: a lightweight scalar feature defined as the ratio of unique content words to total words, projected into 16 dimensions via a Linear-ReLU layer and concatenated into the model's score-prediction vector. Training from scratch (100 epochs, Adam, LR = 0.01, combined MSE + cosine loss), the DOL-augmented model achieves R² = 0.9495, QWK = 0.9457 — preserving elite accuracy while demonstrating ~6.2× stronger penalisation of adversarial verbosity on a scale-normalised basis (Fluff Attack % Δ: −1.43% → −8.90%). The remaining length correlation (r = 0.5911) matches the inherent scorer bias of the ASAP corpus, establishing the *Optimal Fairness Frontier* beyond which further debiasing would degrade predictive validity. Our contribution is the only AES architecture that mathematically identifies, projects, and penalises non-substantive essay length without sacrificing human-level scoring agreement.
 
 **Key Contributions:**
 1. Empirical proof of length bias in Nie (2025) via the Doewes (2026) Pearson framework (r = 0.5876, p ≈ 10⁻²⁴¹).
 2. A lightweight DOL scalar feature requiring zero additional labelled data.
 3. A `nn.Linear(1→16) + ReLU` projection enabling non-linear density threshold learning.
-4. Fluff Attack robustness validation: density collapses (0.2692 → 0.1806) when filler is added, mechanistically driving score penalisation (Δ = −3.5143).
+4. Fluff Attack robustness validation: density collapses (0.2692 → 0.1806) when filler is added, mechanistically driving score penalisation (% Δ = −8.90%, ~6.2× stronger than baseline on a scale-normalised basis).
 5. Definition and demonstration of the *Optimal Fairness Frontier* in AES.
 
 **Dataset:** ASAP (12,976 essays, 8-prompt, Kaggle), train/val/test = 72%/8%/20%, random_state = 42.
 
 **Comparison Table:**
-| Model                          |     R²     |    QWK     | Length Bias (r) |    Fluff Δ     |
+| Model                          |     R²     |    QWK     | Length Bias (r) |  Fluff % Δ     |
 |--------------------------------|:----------:|:----------:|:---------------:|:--------------:|
-| SBERT + LSTM (Nie 2025)        |   0.9502   |   0.9486   |   0.5876 ⚠️    |    −0.1157     |
-| **SBERT + LSTM + DOL (Ours)**  | **0.9495** | **0.9457** |   **0.5911**   | **−3.5143 ✅** |
+| SBERT + LSTM (Nie 2025)        |   0.9502   |   0.9486   |   0.5876 ⚠️    |    −1.43%      |
+| **SBERT + LSTM + DOL (Ours)**  | **0.9495** | **0.9457** |   **0.5911**   | **−8.90% ✅**  |

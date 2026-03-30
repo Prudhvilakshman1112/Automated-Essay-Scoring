@@ -77,6 +77,7 @@ with torch.no_grad():
     fluffed_score = model(fluffed_emb).cpu().item()
 
 delta = fluffed_score - original_score
+pct_delta = (delta / original_score) * 100
 fluff_passed = delta <= 0.5
 
 # ── Dataset split info ─────────────────────────────────────────────────────────
@@ -115,6 +116,7 @@ print(f"     Fluffed essay word count  : {len(fluffed_essay.split())}")
 print(f"     Original predicted score  : {original_score:.4f}")
 print(f"     Score after fluff added   : {fluffed_score:.4f}")
 print(f"     Score change (Δ)          : {delta:+.4f}")
+print(f"     Score change (% Δ)        : {pct_delta:+.2f}%")
 if fluff_passed:
     print(f"     ✅ PASSED — Score within tolerance (no inflation from filler)")
 else:
@@ -132,6 +134,7 @@ results = {
     "length_p": float(length_p),
     "fluff_passed": fluff_passed,
     "fluff_delta": round(float(delta), 4),
+    "fluff_pct_delta": round(float(pct_delta), 2),
     "original_wc": len(original_essay.split()),
     "fluffed_wc": len(fluffed_essay.split()),
     "original_score": round(float(original_score), 4),
@@ -144,7 +147,7 @@ print("✅ Results saved to stage2_results.json (used by Stage 3 for comparison 
 # ── Auto-update Stage 2 README ─────────────────────────────────────────────────
 run_date = results["run_date"]
 fluff_status = "✅ PASSED" if fluff_passed else "❌ FAILED"
-fluff_detail = f"Δ = {delta:+.4f} (within tolerance)" if fluff_passed else f"Score rose by {delta:+.4f}"
+fluff_detail = f"Δ = {delta:+.4f} (% Δ = {pct_delta:+.2f}%, within tolerance)" if fluff_passed else f"Score rose by {delta:+.4f} ({pct_delta:+.2f}%)"
 
 readme_content = f"""# Stage 2 — Biased Fusion: Nie (2025) + Doewes (2026) Metrics
 
@@ -200,6 +203,7 @@ python main.py
 | Original predicted score | {original_score:.4f} |
 | Score after fluff added | {fluffed_score:.4f} |
 | Score change (Δ) | {delta:+.4f} |
+| Score change (% Δ) | {pct_delta:+.2f}% |
 | **Result** | **{fluff_status} — {fluff_detail}** |
 
 ## The Research Finding

@@ -76,10 +76,10 @@ The Fluff Attack (Robustness Test) produced the most striking result of the enti
 
 | Stage | Score Δ after 480 filler words added | Sensitivity vs Stage 2 |
 |-------|--------------------------------------|------------------------|
-| Stage 1/2 (Baseline) | **−0.1157** | 1× (reference) |
-| Stage 3 (DOL Filter) | **−3.5143** | **~30× stronger** |
+| Stage 1/2 (Baseline) | **−0.1157** (−1.43%) | 1× (reference) |
+| Stage 3 (DOL Filter) | **−3.5143** (−8.90%) | **~6.2× stronger (scale-normalised)** |
 
-This is a **3,034% increase in sensitivity to verbosity padding**, achieved by adding a single `nn.Linear(1→16) + ReLU` layer.
+This is a **~6.2× increase in sensitivity to verbosity padding on a scale-normalised basis** (% Δ: −1.43% → −8.90%), achieved by adding a single `nn.Linear(1→16) + ReLU` layer. Note: the raw deltas (−0.12 vs −3.51) suggest 30×, but this is misleading because Stage 2 and Stage 3 output scores on different numeric scales (8 vs 39). The correct comparison uses percentage change relative to each model's own predicted score.
 
 ### Why this is Publication-Worthy: Passive vs Active Robustness
 
@@ -97,7 +97,7 @@ This result demonstrates something architecturally fundamental:
 
 ### What this Proves About the `nn.Linear(1→16) + ReLU` Layer
 
-The fact that Stage 3 penalises filler 30× harder than Stage 2 is **mechanistic proof** that the `nn.Linear(1→16) + ReLU` layer actually **learned a concept of density**. This is not correlation. This is not luck. The backpropagation algorithm, over 100 training epochs, adjusted the 16 weight vectors in this layer such that:
+The fact that Stage 3 penalises filler ~6.2× harder than Stage 2 (on a scale-normalised basis: % Δ = −8.90% vs −1.43%) is **mechanistic proof** that the `nn.Linear(1→16) + ReLU` layer actually **learned a concept of density**. This is not correlation. This is not luck. The backpropagation algorithm, over 100 training epochs, adjusted the 16 weight vectors in this layer such that:
 
 1. When density is high (genuine rich writing), the 16 neurons produce a feature vector that is *neutral or positive* in the final scoring context.
 2. When density collapses (padding), specific neurons activate in proportion to the density drop and pull the score downward.
@@ -393,7 +393,7 @@ The abstract should follow this structure:
 3. **The Gap (1 sentence):** Existing work (Doewes 2026) proves the bias exists but provides no mathematical fix.
 4. **Our Contribution (2 sentences):** We introduce the DOL filter — one sentence describing what it is, one sentence describing the result.
 5. **The Surprising Result (1 sentence):** The remaining r = 0.5911 matches the human scorer's own bias floor, demonstrating that model accuracy and maximal debiasing cannot both be achieved on this dataset — a constraint we formalise as the Optimal Fairness Frontier.
-6. **Validation (1 sentence):** The Fluff Attack demonstrates 30× stronger penalisation of adversarial verbosity (Δ: −0.12 → −3.51), constituting mechanistic proof of the learned density concept.
+6. **Validation (1 sentence):** The Fluff Attack demonstrates ~6.2× stronger penalisation of adversarial verbosity on a scale-normalised basis (% Δ: −1.43% → −8.90%), constituting mechanistic proof of the learned density concept.
 
 ### Target Venues (in priority order)
 

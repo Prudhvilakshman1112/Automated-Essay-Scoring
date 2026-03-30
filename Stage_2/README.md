@@ -57,7 +57,8 @@ python main.py
 | Original predicted score   | 8.0629                                      |
 | Score after fluff added    | 7.9472                                      |
 | Score change (Δ)           | −0.1157                                     |
-| **Result**                 | **✅ PASSED — Δ = −0.1157 (within tolerance)** |
+| Score change (% Δ)         | −1.43%                                      |
+| **Result**                 | **✅ PASSED — Δ = −0.1157 (% Δ = −1.43%, within tolerance)** |
 
 ## The Research Finding
 - **High R²** proves the model is *accurate*

@@ -52,7 +52,7 @@ Without retraining the model, we ran two extra tests:
 - **If we pad an essay with 200 useless words, does the score go up?** → Barely not (Δ = −0.1157). It passes by luck, not by design.
 
 ### Stage 3: We built the fix
-We redesigned the model to include an **information density scalar** — a number that measures how much unique, meaningful content is in the essay per word written. We projected this scalar into 16 dimensions using a learnable neural layer (`nn.Linear(1→16) + ReLU`). When filler words are added, this density collapses and the model *actively penalises* the essay — the score dropped by **−3.5143** in the fluff test (30× stronger than Stage 2).
+We redesigned the model to include an **information density scalar** — a number that measures how much unique, meaningful content is in the essay per word written. We projected this scalar into 16 dimensions using a learnable neural layer (`nn.Linear(1→16) + ReLU`). When filler words are added, this density collapses and the model *actively penalises* the essay — the score dropped by **−8.90%** in the fluff test (~6.2× stronger than Stage 2, on a scale-normalised basis).
 
 ---
 
@@ -528,9 +528,10 @@ predictions = model(X_train, d_train)
 | Original predicted score | 8.0629           | 39.4862                        |
 | Score after fluff        | 7.9472           | 35.9719                        |
 | **Score change (Δ)**     | **−0.1157**      | **−3.5143**                    |
+| **Score change (% Δ)**   | **−1.43%**       | **−8.90%**                     |
 | Result                   | ✅ Passed (lucky) | ✅ Passed (by design)           |
 
-**The DOL model penalises filler 30× harder than Stage 2.** This is the mechanistic proof: the density collapsed from 0.2692 → 0.1806 when filler was added, which activated the ReLU density neurons, which drove the score down by 3.51 points.
+**The DOL model penalises filler ~6.2× harder than Stage 2 on a scale-normalised basis (% Δ = −8.90% vs −1.43%).** This is the mechanistic proof: the density collapsed from 0.2692 → 0.1806 when filler was added, which activated the ReLU density neurons, which drove the score down. Note: the raw deltas (−3.51 vs −0.12) suggest 30×, but this is misleading because the two models output scores on different numeric scales (8 vs 39).
 
 ### 7.9 Training Loss Curve (Stage 3)
 
@@ -812,7 +813,7 @@ Y.N/
 | SBERT + LSTM replicates Nie (2025)                  | Stage 1: R² = 0.9502 > paper's 0.9286                      |
 | Baseline model is length-biased                     | Stage 2: Pearson r = 0.5876, p = 7.20×10⁻²⁴¹               |
 | DOL filter preserves accuracy                       | Stage 3: R² = 0.9495 (only −0.0007 drop vs Stage 2)        |
-| DOL filter mechanistically penalises filler         | Stage 3 Fluff Δ = −3.51 vs −0.12 in Stage 2 (30× stronger) |
+| DOL filter mechanistically penalises filler         | Stage 3 Fluff % Δ = −8.90% vs −1.43% in Stage 2 (~6.2× stronger, scale-normalised) |
 | Remaining bias is human-inherited, not model-caused | r = 0.5911 matches human scorer bias in ASAP data          |
 
 ### The Research Gap We Filled
