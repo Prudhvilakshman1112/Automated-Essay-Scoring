@@ -1,0 +1,14 @@
+{
+  "run_date": "2026-02-18 23:41",
+  "qwk": 0.9486,
+  "mse": 3.8802,
+  "r2": 0.9502,
+  "length_r": 0.5876,
+  "length_p": 7.201971826234435e-241,
+  "fluff_passed": true,
+  "fluff_delta": -0.1157,
+  "original_wc": 832,
+  "fluffed_wc": 1312,
+  "original_score": 8.0629,
+  "fluffed_score": 7.9472
+}

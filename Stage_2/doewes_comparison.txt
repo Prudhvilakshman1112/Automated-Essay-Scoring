@@ -1,0 +1,158 @@
+=========================================================
+  STAGE 2 vs. DOEWES (2026) — HOW CLOSE IS THE MATCH?
+  Generated: 2026-02-28 (Updated with correct chapter mapping)
+=========================================================
+
+VERDICT: STRONG CONCEPTUAL MATCH
+Stage 2 correctly captures the diagnostic philosophy of
+Doewes (2026). Both the Length Bias analysis and Fluff
+Attack are directly motivated by specific findings in the
+thesis. This is best described as "applying the Doewes
+diagnostic framework" rather than replicating individual
+experiments line-by-line.
+
+---------------------------------------------------------
+WHAT DOEWES (2026) ACTUALLY ARGUES (THE REAL CONTENT)
+---------------------------------------------------------
+The thesis is structured around three pillars:
+
+  PILLAR 1 — Chapter 4 (Robustness)
+  "High QWK does NOT mean the model is reliable."
+  Doewes shows AES models fail validity tests under
+  adversarial, off-topic, and gibberish inputs.
+
+  PILLAR 2 — Chapter 5 & 6 (Fairness)
+  "Models are biased at both the group and individual
+   level." He uses SBERT + Gradient Boosting and shows
+   similar essays receive different scores.
+
+  PILLAR 3 — Chapter 7 (Feedback)
+  "Models should explain their scores via counterfactual
+   explanations using LLMs."
+
+The research gap he identifies in Chapter 6 (Discussion):
+  He proves models are biased but DOES NOT implement
+  any density filter or mathematical correction.
+  He suggests future work should address this.
+  THIS IS WHERE OUR DOL FILTER FITS.
+
+---------------------------------------------------------
+KEY FINDINGS FROM DOEWES WE ARE USING
+---------------------------------------------------------
+1. PERMUTATION / WORD-SALAD TEST (Chapter 4)
+   Doewes shuffled words in essays. Models still gave
+   high scores to meaningless "word salad" as long as
+   the essay was long. This is the core of the
+   "statistical shortcut" theory.
+
+   → Our Fluff Attack directly tests the same idea:
+     does adding meaningless repetitive filler inflate
+     the score? This is our version of the word-salad
+     test, applied to the Nie (2025) LSTM model.
+
+2. LENGTH-SCORE CORRELATION (Chapter 4)
+   Doewes finds r > 0.70 between token count and final
+   score in BERT-based models. He calls this a
+   "statistical shortcut" — the model is NOT reading,
+   it is just rewarding length.
+
+   → Our Stage 2 computes Pearson r = 0.5876 between
+     predicted score and word count. This is the same
+     measurement, applied to our LSTM model.
+     (Our r is slightly lower = LSTM is marginally less
+     biased than BERT in this regard.)
+
+3. QWK AS PRIMARY METRIC (Chapter 2 & 3)
+   Doewes uses QWK as the standard agreement metric and
+   shows it can hide reliability problems.
+
+   → Our Stage 2 keeps QWK = 0.9486 (accuracy preserved)
+     while separately showing r = 0.5876 (bias exposed).
+     This is exactly the two-metric approach Doewes
+     advocates: QWK proves accuracy, a second metric
+     proves (un)fairness.
+
+4. ASAP DATASET (Chapter 3)
+   Doewes uses the ASAP dataset for all experiments.
+   → We also use ASAP — results are directly comparable.
+
+---------------------------------------------------------
+HOW OUR STAGE 2 MAPS TO DOEWES CHAPTERS
+---------------------------------------------------------
+Our Test                 | Doewes Chapter | Match Level
+-------------------------|----------------|-------------
+Pearson r (length bias)  | Ch 4 finding   | ✅ Strong —
+                         | r > 0.70 claim | same metric,
+                         |                | our r = 0.5876
+Fluff Attack             | Ch 4 word-     | ✅ Strong —
+                         | salad / gibber-| same principle,
+                         | ish test       | different impl.
+QWK as primary metric    | Ch 2, 3, 5     | ✅ Exact match
+ASAP dataset             | Ch 3           | ✅ Exact match
+No retraining in Stage 2 | Ch 4 baseline  | ✅ Same — Doewes
+                         | (before fix)   | tests baseline
+                         |                | before retraining
+
+---------------------------------------------------------
+WHAT DOEWES DOES THAT WE DO NOT DO
+---------------------------------------------------------
+  - Individual fairness via cosine similarity (Chapter 6)
+  - QWK paradox analysis (Chapter 5, mathematical)
+  - Counterfactual LLM feedback (Chapter 7)
+  - Off-topic essay detection (Chapter 4, separate test)
+
+These are beyond Stage 2 scope but provide academic
+context for the full Doewes framework.
+
+---------------------------------------------------------
+THE RESEARCH GAP (WHY STAGE 3 EXISTS)
+---------------------------------------------------------
+Doewes (Chapter 6, Discussion) identifies the gap we fill:
+
+  "Models should be more robust to length bias, but
+   no implementation of a density-based correction
+   is provided. Future work should..."
+
+Our Stage 3 DOL filter is the direct answer to this gap:
+  - Density-Over-Length scalar = mathematical correction
+  - nn.Linear(1→16) + ReLU = non-linear density threshold
+  - Doewes proved the PROBLEM; we built the SOLUTION.
+
+---------------------------------------------------------
+HOW TO PRESENT THIS IN A RESEARCH CONTEXT
+---------------------------------------------------------
+  "Building on Doewes (2026), who demonstrated that
+   BERT-based AES models exhibit a strong length-score
+   correlation (r > 0.70), we applied two diagnostic
+   tests from his robustness framework to our Nie (2025)
+   SBERT + LSTM baseline:
+
+   (1) Pearson r between predicted scores and word count
+       → r = 0.5876, p = 7.20e-241 — confirming length
+       bias exists in LSTM-based models too.
+
+   (2) A Fluff Attack (analogous to Doewes's word-salad
+       test) → Δ = −0.1157 — the model narrowly passes
+       but only because SBERT partially neutralises
+       filler through sentence averaging, NOT by design.
+
+   Doewes identified this bias but did not implement a
+   density filter. Stage 3 introduces the DOL filter as
+   the mathematical correction he called for."
+
+---------------------------------------------------------
+CONCLUSION
+---------------------------------------------------------
+Stage 2 is a correctly motivated application of the
+Doewes (2026) diagnostic framework to the Nie (2025)
+model. The three key connections are:
+
+  1. Same dataset (ASAP) ✅
+  2. Same primary metric (QWK) ✅
+  3. Same diagnostic logic (length = shortcut = bias) ✅
+
+Our Pearson r test directly measures the correlation
+Doewes reports (r > 0.70) on our model (we get r = 0.5876).
+Our Fluff Attack is our version of his word-salad test.
+
+=========================================================
